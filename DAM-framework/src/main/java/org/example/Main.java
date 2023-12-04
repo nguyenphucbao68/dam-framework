@@ -1,6 +1,7 @@
 package org.example;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Table(name = "blogs")
@@ -56,6 +57,13 @@ class User extends ActiveRecord {
 
     @Column(name = "update_time", type = "datetime")
     private Date updatedAt;
+
+    @OneToMany(refTable = "reviews", refColumn = "user_id", joinColumn = "id")
+    private List<Review> reviews;
+
+    public List<Review> getReviews() {
+        return reviews;
+    }
 }
 
 @Table(name = "reviews")
@@ -87,12 +95,24 @@ class Review extends ActiveRecord {
 
 public class Main {
     public static void main(String[] args) {
+/*
+        // OneToOne
         Review reviewModel = new Review();
         Object[] values = {};
 
         Review review = reviewModel.getFirst("reviews", "true", values);
 
         System.out.println(review.getUser().toString());
+*/
 
+        // OneToMany
+        User userModel = new User();
+        Object[] values = {};
+
+        User user = userModel.getFirst("users", "true", values, 3);
+
+        for(Review t: user.getReviews()){
+            System.out.println(t.getUser());
+        }
     }
 }

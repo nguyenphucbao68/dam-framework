@@ -14,6 +14,12 @@ import java.util.*;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
+@interface DepthLimit {
+    int value() default 1;
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
 @interface UUIDGenerate {
     boolean generate() default false;
 }
@@ -65,16 +71,28 @@ import java.util.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 @interface OneToMany {
-    String dbRef();
-    String type();
+    // Name of the referenced table
+    String refTable();
+
+    // Name of the foreign key column in the current table
+    String joinColumn();
+
+    // Name of the referenced table's primary key column
+    String refColumn();
 }
 
 // annotations interface for ManyToOne in SQL
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 @interface ManyToOne {
-    String dbRef();
-    String type();
+    // Name of the referenced table
+    String refTable();
+
+    // Name of the foreign key column in the current table
+    String joinColumn();
+
+    // Name of the referenced table's primary key column
+    String refColumn();
 }
 
 // annotations interface for ManyToMany in SQL
@@ -96,10 +114,6 @@ import java.util.*;
 }
 
 public class ActiveRecord {
-    private static final String JDBC_URL = "jdbc:postgresql://localhost:5432/ticket?loggerLevel=OFF";
-    private static final String USER = "postgres";
-    private static final String PASSWORD = "localdb";
-
     private static final Map<String, Class<?>> tableToClassMap = new HashMap<>();
 
     static {
@@ -152,7 +166,7 @@ public class ActiveRecord {
     }
 
     protected Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(JDBC_URL, USER, PASSWORD);
+        return DatabaseConnectionManager.getConnection();
     }
 
     private String getTableName() {
@@ -197,7 +211,10 @@ public class ActiveRecord {
         return tableAnnotation != null ? tableAnnotation.name() : "";
     }
 
-    <T extends ActiveRecord> T getFirst(String refTable, String condition, Object[] conditionValues) {
+    <T extends ActiveRecord> T getFirst(String refTable, String condition, Object[] conditionValues, int maxDepth) {
+        if (maxDepth <= 0) {
+            return null;
+        }
         Class clazz = getClassForTableName(refTable);
 
         String tableName = getTableNameFromClass(clazz);
@@ -213,7 +230,8 @@ public class ActiveRecord {
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     T object = newInstance(clazz);
-                    setFieldsFromResultSet(object, resultSet);
+                    setFieldsFromResultSet(object, resultSet, maxDepth);
+
                     return object;
                 }
             }
@@ -225,7 +243,12 @@ public class ActiveRecord {
         return null;
     }
 
-    private void setFieldsFromResultSet(ActiveRecord object, ResultSet resultSet) throws SQLException, IllegalAccessException {
+    private void setFieldsFromResultSet(ActiveRecord object, ResultSet resultSet, int maxDepth) throws SQLException, IllegalAccessException {
+        Class<?> clazz = object.getClass();
+
+        DepthLimit depthLimitAnnotation = clazz.getAnnotation(DepthLimit.class);
+        maxDepth = (depthLimitAnnotation != null) ? depthLimitAnnotation.value() : maxDepth;
+
         for (Field field : object.getClass().getDeclaredFields()) {
             if (!field.isSynthetic()) {
                 field.setAccessible(true);
@@ -233,9 +256,15 @@ public class ActiveRecord {
                 // Handle other fields as usual
                 OneToOne oneToOneAnnotation = field.getAnnotation(OneToOne.class);
                 if (oneToOneAnnotation != null) {
-                    setOneToOneField(object, field, resultSet, oneToOneAnnotation);
-                } else {
-                    // Handle other fields as usual
+                    setOneToOneField(object, field, resultSet, oneToOneAnnotation, maxDepth);
+                }
+
+                OneToMany oneToManyAnnotation = field.getAnnotation(OneToMany.class);
+                if (oneToManyAnnotation != null) {
+                    setOneToManyField(object, field, resultSet, oneToManyAnnotation, maxDepth);
+                }
+
+                if (oneToOneAnnotation == null && oneToManyAnnotation == null) {
                     field.set(object, resultSet.getObject(getColumnName(field)));
                 }
 
@@ -244,7 +273,7 @@ public class ActiveRecord {
         }
     }
 
-    private void setOneToOneField(ActiveRecord object, Field field, ResultSet resultSet, OneToOne oneToOneAnnotation) throws SQLException, IllegalAccessException {
+    private void setOneToOneField(ActiveRecord object, Field field, ResultSet resultSet, OneToOne oneToOneAnnotation, int maxDepth) throws SQLException, IllegalAccessException {
         field.setAccessible(true);
 
         String refTable = oneToOneAnnotation.refTable();
@@ -259,12 +288,67 @@ public class ActiveRecord {
 
         // get class based on field
 
-        Object referencedObject = this.getFirst(refTable, condition, conditionValues);
+        Object referencedObject = this.getFirst(refTable, condition, conditionValues, maxDepth - 1);
 
 
         field.set(object, referencedObject);
 
         field.setAccessible(false);
+    }
+
+    private void setOneToManyField(ActiveRecord object, Field field, ResultSet resultSet, OneToMany oneToManyAnnotation, int maxDepth) throws SQLException, IllegalAccessException {
+        field.setAccessible(true);
+
+        String refTable = oneToManyAnnotation.refTable();
+        String joinColumn = oneToManyAnnotation.joinColumn();
+        String refColumn = oneToManyAnnotation.refColumn();
+
+        // Assuming you have a method to fetch a list of records based on a condition
+        String condition = refColumn + " = ?";
+        Object joinColumnValue = resultSet.getObject(joinColumn);
+        Object[] conditionValues = { joinColumnValue };
+
+
+        // Retrieve the list of related objects
+        List<ActiveRecord> relatedObjects = getRelatedObjects(refTable, condition, conditionValues, maxDepth - 1);
+
+        // Set the collection of related objects to the field
+        field.set(object, relatedObjects);
+
+        field.setAccessible(false);
+    }
+
+    private <T extends ActiveRecord> List<T> getRelatedObjects(String refTable, String condition, Object[] conditionValues, int maxDepth) {
+        if (maxDepth <= 0) {
+            return null;
+        }
+        Class clazz = getClassForTableName(refTable);
+
+        String tableName = getTableNameFromClass(clazz);
+        String sql = String.format("SELECT * FROM %s WHERE %s", tableName, condition);
+
+        List<T> relatedObjects = new ArrayList<>();
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            for (int i = 0; i < conditionValues.length; i++) {
+                statement.setObject(i + 1, conditionValues[i]);
+            }
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    T object = newInstance(clazz);
+                    setFieldsFromResultSet(object, resultSet, maxDepth);
+                    relatedObjects.add(object);
+                }
+            }
+
+        } catch (SQLException | InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return relatedObjects;
     }
 
     private Class<?> getClassForTableName(String tableName) {
