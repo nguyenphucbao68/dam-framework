@@ -197,7 +197,7 @@ public class ActiveRecord {
         return tableAnnotation != null ? tableAnnotation.name() : "";
     }
 
-    private <T extends ActiveRecord> T getFirst(String refTable, String condition, Object[] conditionValues) {
+    <T extends ActiveRecord> T getFirst(String refTable, String condition, Object[] conditionValues) {
         Class clazz = getClassForTableName(refTable);
 
         String tableName = getTableNameFromClass(clazz);
