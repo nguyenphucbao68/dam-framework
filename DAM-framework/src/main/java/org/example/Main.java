@@ -14,10 +14,9 @@ public class Main {
 */
 
         // OneToMany
-        User userModel = new User();
         Object[] values = {};
 
-        User user = userModel.getFirst("users", "true", values, 3);
+        User user = User.getFirst("users", "true", values, 3);
 
         for(Review t: user.getReviews()){
             System.out.println(t.getUser());
