@@ -1,4 +1,15 @@
-package org.example;
+package org.example.mapper;
+import org.example.sql.DatabaseConnectionManager;
+import org.example.annotation.DepthLimit;
+import org.example.annotation.Table;
+import org.example.annotation.Column;
+import org.example.annotation.PrimaryKey;
+import org.example.annotation.OneToMany;
+import org.example.annotation.OneToOne;
+import org.example.annotation.ManyToOne;
+import org.example.annotation.Id;
+import org.example.annotation.GeneratedValue;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.*;
@@ -6,112 +17,10 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@interface DepthLimit {
-    int value() default 1;
-}
-
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@interface UUIDGenerate {
-    boolean generate() default false;
-}
-
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-@interface Table {
-    String name();
-}
-
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@interface Column {
-    String name();
-    String type();
-}
-
-// annotations interface for PrimaryKey in SQL
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@interface PrimaryKey {
-    String name();
-    String type();
-}
-
-// annotations interface for ForeignKey in SQL
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@interface ForeignKey {
-    String name();
-    String type();
-}
-
-// annotations interface for OneToOne in SQL
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@interface OneToOne {
-    // Name of the referenced table
-    String refTable();
-
-    // Name of the foreign key column in the current table
-    String joinColumn();
-
-    // Name of the referenced table's primary key column
-    String refColumn();
-}
-
-// annotations interface for OneToMany in SQL
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@interface OneToMany {
-    // Name of the referenced table
-    String refTable();
-
-    // Name of the foreign key column in the current table
-    String joinColumn();
-
-    // Name of the referenced table's primary key column
-    String refColumn();
-}
-
-// annotations interface for ManyToOne in SQL
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@interface ManyToOne {
-    // Name of the referenced table
-    String refTable();
-
-    // Name of the foreign key column in the current table
-    String joinColumn();
-
-    // Name of the referenced table's primary key column
-    String refColumn();
-}
-
-// annotations interface for ManyToMany in SQL
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@interface ManyToMany {
-    String dbRef();
-    String type();
-}
-
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@interface Id {
-}
-
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@interface GeneratedValue {
-}
 
 public class ActiveRecord {
     private static final Map<String, Class<?>> tableToClassMap = new HashMap<>();
@@ -211,7 +120,7 @@ public class ActiveRecord {
         return tableAnnotation != null ? tableAnnotation.name() : "";
     }
 
-    <T extends ActiveRecord> T getFirst(String refTable, String condition, Object[] conditionValues, int maxDepth) {
+    public <T extends ActiveRecord> T getFirst(String refTable, String condition, Object[] conditionValues, int maxDepth) {
         if (maxDepth <= 0) {
             return null;
         }
@@ -264,7 +173,12 @@ public class ActiveRecord {
                     setOneToManyField(object, field, resultSet, oneToManyAnnotation, maxDepth);
                 }
 
-                if (oneToOneAnnotation == null && oneToManyAnnotation == null) {
+                ManyToOne manyToOneAnnotation = field.getAnnotation(ManyToOne.class);
+                if (manyToOneAnnotation != null) {
+                    setManyToOneField(object, field, resultSet, manyToOneAnnotation, maxDepth);
+                }
+
+                if (oneToOneAnnotation == null && oneToManyAnnotation == null && manyToOneAnnotation == null) {
                     field.set(object, resultSet.getObject(getColumnName(field)));
                 }
 
@@ -318,6 +232,26 @@ public class ActiveRecord {
         field.setAccessible(false);
     }
 
+    private void setManyToOneField(ActiveRecord object, Field field, ResultSet resultSet, ManyToOne manyToOneAnnotation, int maxDepth) throws SQLException, IllegalAccessException {
+        field.setAccessible(true);
+
+        String refTable = manyToOneAnnotation.refTable();
+        String joinColumn = manyToOneAnnotation.joinColumn();
+        String refColumn = manyToOneAnnotation.refColumn();
+
+        // Assuming you have a method to fetch a single record based on a condition
+        String condition = refColumn + " = ?";
+        Object joinColumnValue = resultSet.getObject(joinColumn);
+        Object[] conditionValues = { joinColumnValue };
+
+        // get class based on field
+        Object referencedObject = this.getFirst(refTable, condition, conditionValues, maxDepth - 1);
+
+        field.set(object, referencedObject);
+
+        field.setAccessible(false);
+    }
+
     private <T extends ActiveRecord> List<T> getRelatedObjects(String refTable, String condition, Object[] conditionValues, int maxDepth) {
         if (maxDepth <= 0) {
             return null;
@@ -357,22 +291,6 @@ public class ActiveRecord {
 
     private boolean isIdField(Field field) {
         return field.isAnnotationPresent(Id.class);
-    }
-
-    // private formatValue to String or Integer based on type in annotation @Column
-    private String formatValue(Field field, Object value) {
-        Column columnAnnotation = field.getAnnotation(Column.class);
-        String type = columnAnnotation.type();
-        if (type.equals("varchar")) {
-            return "'" + value + "'";
-        } else if (type.equals("int")) {
-            return value.toString();
-        } else if (type.equals("datetime")) {
-            return "'" + value + "'";
-        } else if (type.equals("uuid")) {
-            return "'" + value + "'";
-        }
-        return "";
     }
 
     private boolean isGeneratedValueField(Field field) {

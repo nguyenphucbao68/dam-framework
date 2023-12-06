@@ -1,7 +1,4 @@
-package org.example.DAM;
-
-import java.sql.DriverManager;
-import java.sql.SQLException;
+package org.example.sql;
 
 public class PostgresSqlAccessManagement extends DatabaseAccessManagment{
 
