@@ -1,14 +1,6 @@
 package org.example.mapper;
+import org.example.annotation.*;
 import org.example.sql.DatabaseConnectionManager;
-import org.example.annotation.DepthLimit;
-import org.example.annotation.Table;
-import org.example.annotation.Column;
-import org.example.annotation.PrimaryKey;
-import org.example.annotation.OneToMany;
-import org.example.annotation.OneToOne;
-import org.example.annotation.ManyToOne;
-import org.example.annotation.Id;
-import org.example.annotation.GeneratedValue;
 
 import java.io.File;
 import java.io.IOException;
@@ -178,6 +170,11 @@ public class ActiveRecord {
                     setManyToOneField(object, field, resultSet, manyToOneAnnotation, maxDepth);
                 }
 
+                ManyToMany manyToManyAnnotation = field.getAnnotation(ManyToMany.class);
+                if (manyToManyAnnotation != null) {
+                    setManyToManyField(object, field, resultSet, manyToManyAnnotation, maxDepth);
+                }
+
                 if (oneToOneAnnotation == null && oneToManyAnnotation == null && manyToOneAnnotation == null) {
                     field.set(object, resultSet.getObject(getColumnName(field)));
                 }
@@ -248,6 +245,27 @@ public class ActiveRecord {
         Object referencedObject = this.getFirst(refTable, condition, conditionValues, maxDepth - 1);
 
         field.set(object, referencedObject);
+
+        field.setAccessible(false);
+    }
+
+    private void setManyToManyField(ActiveRecord object, Field field, ResultSet resultSet, ManyToMany manyToManyAnnotation, int maxDepth) throws SQLException, IllegalAccessException {
+        field.setAccessible(true);
+
+        String joinTable = manyToManyAnnotation.joinTable();
+        String joinColumn = manyToManyAnnotation.joinColumn();
+        String inverseJoinColumn = manyToManyAnnotation.inverseJoinColumn();
+
+        // Assuming you have a method to fetch a list of related objects based on a condition
+        String condition = joinColumn + " = ?";
+        Object joinColumnValue = resultSet.getObject(inverseJoinColumn);
+        Object[] conditionValues = { joinColumnValue };
+
+        // Retrieve the list of related objects
+        List<ActiveRecord> relatedObjects = getRelatedObjects(joinTable, condition, conditionValues, maxDepth - 1);
+
+        // Set the collection of related objects to the field
+        field.set(object, relatedObjects);
 
         field.setAccessible(false);
     }
@@ -328,18 +346,6 @@ public class ActiveRecord {
             }
         }
         return false;
-    }
-
-    private String[] getPrimaryKeys() {
-        String[] primaryKey = new String[2];
-        for (Field field : getClass().getDeclaredFields()) {
-            PrimaryKey primaryKeyAnnotation = field.getAnnotation(PrimaryKey.class);
-            if (primaryKeyAnnotation != null) {
-                primaryKey[0] = primaryKeyAnnotation.name();
-                primaryKey[1] = primaryKeyAnnotation.type();
-            }
-        }
-        return primaryKey;
     }
 
     private String getInsertSql() {

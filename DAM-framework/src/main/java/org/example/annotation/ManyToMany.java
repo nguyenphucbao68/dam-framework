@@ -8,6 +8,12 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface ManyToMany {
-    String dbRef();
-    String type();
+    // Name of the join table
+    String joinTable();
+
+    // Name of the column in the join table that references the current table
+    String joinColumn();
+
+    // Name of the column in the join table that references the related table
+    String inverseJoinColumn();
 }

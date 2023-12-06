@@ -9,27 +9,27 @@ import java.util.UUID;
 
 @Table(name = "users")
 public class User extends ActiveRecord {
-    @PrimaryKey(name = "id", type = "uuid")
+    @PrimaryKey(name = "id")
     @Id
     @GeneratedValue
     private UUID id;
 
-    @Column(name = "email", type = "varchar")
+    @Column(name = "email")
     private String email;
 
-    @Column(name = "role", type = "varchar")
+    @Column(name = "role")
     private Integer role = 0;
 
-    @Column(name = "display_name", type = "varchar")
+    @Column(name = "display_name")
     private String display_name;
 
-    @Column(name = "avatar_url", type = "varchar")
+    @Column(name = "avatar_url")
     private String avatarUrl;
 
-    @Column(name = "create_time", type = "datetime")
+    @Column(name = "create_time")
     private Date createdAt;
 
-    @Column(name = "update_time", type = "datetime")
+    @Column(name = "update_time")
     private Date updatedAt;
 
     @OneToMany(refTable = "reviews", refColumn = "user_id", joinColumn = "id")
