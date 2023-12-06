@@ -1,21 +1,8 @@
 package org.example.mapper;
+import org.example.annotation.*;
 import org.example.sql.DatabaseConnectionManager;
-import org.example.annotation.DepthLimit;
-import org.example.annotation.Table;
-import org.example.annotation.Column;
-import org.example.annotation.PrimaryKey;
-import org.example.annotation.OneToMany;
-import org.example.annotation.OneToOne;
-import org.example.annotation.ManyToOne;
-import org.example.annotation.Id;
-import org.example.annotation.GeneratedValue;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.annotation.*;
 import java.lang.reflect.Field;
-import java.net.URL;
-import java.net.URLDecoder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,58 +10,14 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class ActiveRecord {
-    private static final Map<String, Class<?>> tableToClassMap = new HashMap<>();
+    private static final ClassScanner classScanner = new ClassScanner();
 
     static {
         // Replace "your.package.name" with the actual package where your model classes are located
-        scanClassesWithAnnotation("org.example", Table.class);
+        classScanner.scanClassesWithAnnotation("org.example", Table.class);
     }
 
-    private static void scanClassesWithAnnotation(String packageName, Class<? extends Annotation> annotation) {
-        try {
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            String path = packageName.replace('.', '/');
-            Enumeration<URL> resources = classLoader.getResources(path);
-
-            while (resources.hasMoreElements()) {
-                URL resource = resources.nextElement();
-                String filePath = URLDecoder.decode(resource.getFile(), "UTF-8");
-                File directory = new File(filePath);
-
-                if (directory.isDirectory()) {
-                    scanClassesInDirectory(packageName, directory, annotation);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace(); // Handle the exception according to your needs
-        }
-    }
-
-    private static void scanClassesInDirectory(String packageName, File directory, Class<? extends Annotation> annotation) {
-        File[] files = directory.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    scanClassesInDirectory(packageName + "." + file.getName(), file, annotation);
-                } else if (file.getName().endsWith(".class")) {
-                    String className = packageName + '.' + file.getName().substring(0, file.getName().length() - 6);
-                    try {
-                        Class<?> clazz = Class.forName(className);
-                        if (clazz.isAnnotationPresent(annotation)) {
-                            Table tableAnnotation = clazz.getAnnotation(Table.class);
-                            if (tableAnnotation != null) {
-                                tableToClassMap.put(tableAnnotation.name(), clazz);
-                            }
-                        }
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace(); // Handle the exception according to your needs
-                    }
-                }
-            }
-        }
-    }
-
-    protected Connection getConnection() throws SQLException {
+    protected static Connection getConnection() throws SQLException {
         return DatabaseConnectionManager.getConnection();
     }
 
@@ -115,12 +58,12 @@ public class ActiveRecord {
         return values.toString();
     }
 
-    private String getTableNameFromClass(Class<?> clazz) {
+    private static String getTableNameFromClass(Class<?> clazz) {
         Table tableAnnotation = clazz.getAnnotation(Table.class);
         return tableAnnotation != null ? tableAnnotation.name() : "";
     }
 
-    public <T extends ActiveRecord> T getFirst(String refTable, String condition, Object[] conditionValues, int maxDepth) {
+    public static <T extends ActiveRecord> T getFirst(String refTable, String condition, Object[] conditionValues, int maxDepth) {
         if (maxDepth <= 0) {
             return null;
         }
@@ -152,7 +95,7 @@ public class ActiveRecord {
         return null;
     }
 
-    private void setFieldsFromResultSet(ActiveRecord object, ResultSet resultSet, int maxDepth) throws SQLException, IllegalAccessException {
+    private static void setFieldsFromResultSet(ActiveRecord object, ResultSet resultSet, int maxDepth) throws SQLException, IllegalAccessException {
         Class<?> clazz = object.getClass();
 
         DepthLimit depthLimitAnnotation = clazz.getAnnotation(DepthLimit.class);
@@ -178,8 +121,13 @@ public class ActiveRecord {
                     setManyToOneField(object, field, resultSet, manyToOneAnnotation, maxDepth);
                 }
 
+                ManyToMany manyToManyAnnotation = field.getAnnotation(ManyToMany.class);
+                if (manyToManyAnnotation != null) {
+                    setManyToManyField(object, field, resultSet, manyToManyAnnotation, maxDepth);
+                }
+
                 if (oneToOneAnnotation == null && oneToManyAnnotation == null && manyToOneAnnotation == null) {
-                    field.set(object, resultSet.getObject(getColumnName(field)));
+                    field.set(object, resultSet.getObject(object.getColumnName(field)));
                 }
 
                 field.setAccessible(false);
@@ -187,7 +135,7 @@ public class ActiveRecord {
         }
     }
 
-    private void setOneToOneField(ActiveRecord object, Field field, ResultSet resultSet, OneToOne oneToOneAnnotation, int maxDepth) throws SQLException, IllegalAccessException {
+    private static void setOneToOneField(ActiveRecord object, Field field, ResultSet resultSet, OneToOne oneToOneAnnotation, int maxDepth) throws SQLException, IllegalAccessException {
         field.setAccessible(true);
 
         String refTable = oneToOneAnnotation.refTable();
@@ -202,7 +150,7 @@ public class ActiveRecord {
 
         // get class based on field
 
-        Object referencedObject = this.getFirst(refTable, condition, conditionValues, maxDepth - 1);
+        Object referencedObject = getFirst(refTable, condition, conditionValues, maxDepth - 1);
 
 
         field.set(object, referencedObject);
@@ -210,7 +158,7 @@ public class ActiveRecord {
         field.setAccessible(false);
     }
 
-    private void setOneToManyField(ActiveRecord object, Field field, ResultSet resultSet, OneToMany oneToManyAnnotation, int maxDepth) throws SQLException, IllegalAccessException {
+    private static void setOneToManyField(ActiveRecord object, Field field, ResultSet resultSet, OneToMany oneToManyAnnotation, int maxDepth) throws SQLException, IllegalAccessException {
         field.setAccessible(true);
 
         String refTable = oneToManyAnnotation.refTable();
@@ -232,7 +180,7 @@ public class ActiveRecord {
         field.setAccessible(false);
     }
 
-    private void setManyToOneField(ActiveRecord object, Field field, ResultSet resultSet, ManyToOne manyToOneAnnotation, int maxDepth) throws SQLException, IllegalAccessException {
+    private static void setManyToOneField(ActiveRecord object, Field field, ResultSet resultSet, ManyToOne manyToOneAnnotation, int maxDepth) throws SQLException, IllegalAccessException {
         field.setAccessible(true);
 
         String refTable = manyToOneAnnotation.refTable();
@@ -245,14 +193,35 @@ public class ActiveRecord {
         Object[] conditionValues = { joinColumnValue };
 
         // get class based on field
-        Object referencedObject = this.getFirst(refTable, condition, conditionValues, maxDepth - 1);
+        Object referencedObject = getFirst(refTable, condition, conditionValues, maxDepth - 1);
 
         field.set(object, referencedObject);
 
         field.setAccessible(false);
     }
 
-    private <T extends ActiveRecord> List<T> getRelatedObjects(String refTable, String condition, Object[] conditionValues, int maxDepth) {
+    private static void setManyToManyField(ActiveRecord object, Field field, ResultSet resultSet, ManyToMany manyToManyAnnotation, int maxDepth) throws SQLException, IllegalAccessException {
+        field.setAccessible(true);
+
+        String joinTable = manyToManyAnnotation.joinTable();
+        String joinColumn = manyToManyAnnotation.joinColumn();
+        String inverseJoinColumn = manyToManyAnnotation.inverseJoinColumn();
+
+        // Assuming you have a method to fetch a list of related objects based on a condition
+        String condition = joinColumn + " = ?";
+        Object joinColumnValue = resultSet.getObject(inverseJoinColumn);
+        Object[] conditionValues = { joinColumnValue };
+
+        // Retrieve the list of related objects
+        List<ActiveRecord> relatedObjects = getRelatedObjects(joinTable, condition, conditionValues, maxDepth - 1);
+
+        // Set the collection of related objects to the field
+        field.set(object, relatedObjects);
+
+        field.setAccessible(false);
+    }
+
+    private static <T extends ActiveRecord> List<T> getRelatedObjects(String refTable, String condition, Object[] conditionValues, int maxDepth) {
         if (maxDepth <= 0) {
             return null;
         }
@@ -285,8 +254,8 @@ public class ActiveRecord {
         return relatedObjects;
     }
 
-    private Class<?> getClassForTableName(String tableName) {
-        return tableToClassMap.get(tableName);
+    private static Class<?> getClassForTableName(String tableName) {
+        return classScanner.getTableToClassMap().get(tableName);
     }
 
     private boolean isIdField(Field field) {
@@ -328,18 +297,6 @@ public class ActiveRecord {
             }
         }
         return false;
-    }
-
-    private String[] getPrimaryKeys() {
-        String[] primaryKey = new String[2];
-        for (Field field : getClass().getDeclaredFields()) {
-            PrimaryKey primaryKeyAnnotation = field.getAnnotation(PrimaryKey.class);
-            if (primaryKeyAnnotation != null) {
-                primaryKey[0] = primaryKeyAnnotation.name();
-                primaryKey[1] = primaryKeyAnnotation.type();
-            }
-        }
-        return primaryKey;
     }
 
     private String getInsertSql() {
@@ -449,7 +406,7 @@ public class ActiveRecord {
         }
     }
 
-    private <T extends ActiveRecord> T newInstance(Class<?> clazz) throws IllegalAccessException, InstantiationException {
+    private static <T extends ActiveRecord> T newInstance(Class<?> clazz) throws IllegalAccessException, InstantiationException {
         try {
             return (T) clazz.newInstance();
         } catch (ReflectiveOperationException e) {

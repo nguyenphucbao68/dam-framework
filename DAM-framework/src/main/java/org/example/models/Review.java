@@ -8,24 +8,24 @@ import java.util.UUID;
 
 @Table(name = "reviews")
 public class Review extends ActiveRecord {
-    @PrimaryKey(name = "id", type = "uuid")
+    @PrimaryKey(name = "id")
     @Id
     @GeneratedValue
     private UUID id;
 
-    @Column(name = "comment", type = "text")
+    @Column(name = "comment")
     private String comment;
 
-    @Column(name = "rate", type = "int")
+    @Column(name = "rate")
     private Integer rate;
 
     @OneToOne(refTable = "users", refColumn = "id", joinColumn = "user_id")
     private User user;
 
-    @Column(name = "create_time", type = "datetime")
+    @Column(name = "create_time")
     private Date createdAt;
 
-    @Column(name = "update_time", type = "datetime")
+    @Column(name = "update_time")
     private Date updatedAt;
 
     public User getUser() {
