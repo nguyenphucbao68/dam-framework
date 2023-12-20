@@ -4,13 +4,13 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public abstract class DatabaseAccessManagment {
+public abstract class DatabaseConnectionManagment {
     protected String hostname = null;
     protected Integer port = 0;
     protected String databaseName = null;
     protected String user = "";
     protected String password = "";
-    public DatabaseAccessManagment(String hostname, int port, String databaseName,String user, String password){
+    public DatabaseConnectionManagment(String hostname, int port, String databaseName, String user, String password){
         this.hostname = hostname;
         this.port = port;
         this.databaseName = databaseName;

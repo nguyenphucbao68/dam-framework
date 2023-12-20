@@ -17,9 +17,9 @@ import java.util.List;
 import static org.example.mapper.ActiveRecord.*;
 
 public class CRUDManager {
-    private DatabaseAccessManagment dam;
+    private DatabaseConnectionManagment dam;
     private SqlBuilderDirector sbd = new SqlBuilderDirector(new SqlBuilder());
-    public CRUDManager(DatabaseAccessManagment dam){
+    public CRUDManager(DatabaseConnectionManagment dam){
         this.dam = dam;
     }
     public int insert(ActiveRecord obj) {

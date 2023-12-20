@@ -1,8 +1,7 @@
 package org.example;
 import org.example.models.*;
-import org.example.sql.DatabaseAccessManagment;
-import org.example.sql.PostgresSqlAccessManagement;
-import org.example.sql.SqlBuilder;
+import org.example.sql.DatabaseConnectionManagment;
+import org.example.sql.PostgresSqlConnectionManagement;
 
 import java.sql.SQLException;
 
@@ -19,7 +18,7 @@ public class Main {
 */
 
         // OneToMany
-        DatabaseAccessManagment dam = new PostgresSqlAccessManagement("localhost", 5432, "ticket", "postgres", "localdb");
+        DatabaseConnectionManagment dam = new PostgresSqlConnectionManagement("localhost", 5432, "ticket", "postgres", "localdb");
         User userModel = new User();
         userModel.setConnectionManager(dam);
 

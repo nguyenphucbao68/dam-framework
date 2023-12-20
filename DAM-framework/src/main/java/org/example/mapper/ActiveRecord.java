@@ -1,14 +1,9 @@
 package org.example.mapper;
 import org.example.sql.CRUDManager;
-import org.example.sql.DatabaseAccessManagment;
-import org.example.sql.DatabaseConnectionManager;
-import org.example.annotation.DepthLimit;
+import org.example.sql.DatabaseConnectionManagment;
 import org.example.annotation.Table;
 import org.example.annotation.Column;
 import org.example.annotation.PrimaryKey;
-import org.example.annotation.OneToMany;
-import org.example.annotation.OneToOne;
-import org.example.annotation.ManyToOne;
 import org.example.annotation.Id;
 import org.example.annotation.GeneratedValue;
 
@@ -18,7 +13,6 @@ import java.lang.annotation.*;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,7 +20,7 @@ import java.util.*;
 
 public class ActiveRecord {
     private static final Map<String, Class<?>> tableToClassMap = new HashMap<>();
-    private DatabaseAccessManagment dam = null;
+    private DatabaseConnectionManagment dam = null;
     private CRUDManager CRUDm= null;
 
     static {
@@ -306,7 +300,7 @@ public class ActiveRecord {
     }
 
     //set connection manager
-    public void setConnectionManager(DatabaseAccessManagment dam){
+    public void setConnectionManager(DatabaseConnectionManagment dam){
         this.dam = dam;
         this.CRUDm = new CRUDManager(dam);
     }
