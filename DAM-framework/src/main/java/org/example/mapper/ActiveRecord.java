@@ -4,13 +4,16 @@ import org.example.sql.CRUDManager;
 import org.example.sql.DatabaseConnectionManagment;
 
 import java.lang.reflect.Field;
-import java.sql.Connection;
+import java.io.File;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.lang.annotation.*;
+import java.io.IOException;
+
 
 public class ActiveRecord {
     private static final ClassScanner classScanner = new ClassScanner();
