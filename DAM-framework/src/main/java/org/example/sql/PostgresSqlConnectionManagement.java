@@ -1,8 +1,8 @@
 package org.example.sql;
 
-public class PostgresSqlAccessManagement extends DatabaseAccessManagment{
+public class PostgresSqlConnectionManagement extends DatabaseConnectionManagment {
 
-    public PostgresSqlAccessManagement(String hostname,int port,String databaseName, String user, String password){
+    public PostgresSqlConnectionManagement(String hostname, int port, String databaseName, String user, String password){
         super(hostname,
                 port,
                 databaseName,
