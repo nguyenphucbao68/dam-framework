@@ -18,7 +18,7 @@ public class Main {
 */
 
         // OneToMany
-        DatabaseConnectionManagment dam = new PostgresSqlConnectionManagement("localhost", 5432, "ticket", "postgres", "localdb");
+        DatabaseConnectionManagment dam = new PostgresSqlConnectionManagement("localhost", 5432, "ticket", "postgres", "postgres");
         User userModel = new User();
         userModel.setConnectionManager(dam);
 
@@ -27,7 +27,7 @@ public class Main {
         User user = userModel.getFirst("users", "true", values, 3);
 
         for(Review t: user.getReviews()){
-            System.out.println(t.getUser());
+            System.out.println(t);
         }
 
     }
