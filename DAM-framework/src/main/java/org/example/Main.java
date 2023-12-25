@@ -18,7 +18,7 @@ public class Main {
 */
 
         // OneToMany
-        DatabaseConnectionManagment dam = new PostgresSqlConnectionManagement("localhost", 5432, "ticket", "postgres", "postgres");
+        DatabaseConnectionManagment dam = new PostgresSqlConnectionManagement("localhost", 5432, "ticket", "postgres", "localdb");
         User userModel = new User();
         userModel.setConnectionManager(dam);
 

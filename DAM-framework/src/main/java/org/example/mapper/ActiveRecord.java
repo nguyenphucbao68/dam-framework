@@ -17,57 +17,12 @@ import java.io.IOException;
 
 public class ActiveRecord {
     private static final ClassScanner classScanner = new ClassScanner();
-    private static final Map<String, Class<?>> tableToClassMap = new HashMap<>();
     private DatabaseConnectionManagment dam = null;
     private CRUDManager CRUDm= null;
 
     static {
         // Replace "your.package.name" with the actual package where your model classes are located
         classScanner.scanClassesWithAnnotation("org.example", Table.class);
-    }
-
-    private static void scanClassesWithAnnotation(String packageName, Class<? extends Annotation> annotation) {
-        try {
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            String path = packageName.replace('.', '/');
-            Enumeration<URL> resources = classLoader.getResources(path);
-
-            while (resources.hasMoreElements()) {
-                URL resource = resources.nextElement();
-                String filePath = URLDecoder.decode(resource.getFile(), "UTF-8");
-                File directory = new File(filePath);
-
-                if (directory.isDirectory()) {
-                    scanClassesInDirectory(packageName, directory, annotation);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace(); // Handle the exception according to your needs
-        }
-    }
-
-    private static void scanClassesInDirectory(String packageName, File directory, Class<? extends Annotation> annotation) {
-        File[] files = directory.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    scanClassesInDirectory(packageName + "." + file.getName(), file, annotation);
-                } else if (file.getName().endsWith(".class")) {
-                    String className = packageName + '.' + file.getName().substring(0, file.getName().length() - 6);
-                    try {
-                        Class<?> clazz = Class.forName(className);
-                        if (clazz.isAnnotationPresent(annotation)) {
-                            Table tableAnnotation = clazz.getAnnotation(Table.class);
-                            if (tableAnnotation != null) {
-                                tableToClassMap.put(tableAnnotation.name(), clazz);
-                            }
-                        }
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace(); // Handle the exception according to your needs
-                    }
-                }
-            }
-        }
     }
 
     public String getTableName() {
@@ -156,7 +111,7 @@ public class ActiveRecord {
 
 
     public static Class<?> getClassForTableName(String tableName) {
-        return tableToClassMap.get(tableName);
+        return classScanner.getTableToClassMap().get(tableName);
     }
 
     private boolean isIdField(Field field) {
