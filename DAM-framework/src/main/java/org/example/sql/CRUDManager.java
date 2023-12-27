@@ -73,20 +73,25 @@ public class CRUDManager {
         return rowCount;
     }
     public <T extends ActiveRecord> T selectFirst
-            (String refTable, String condition, Object[] conditionValues, int maxDepth) {
+            (String refTable, String condition, Object[] conditionValues, String[] groupColumns, String havingCondition, Object[] havingConditionValues,int maxDepth) {
         if (maxDepth <= 0) {
             return null;
         }
         Class clazz = getClassForTableName(refTable);
         String tableName = getTableNameFromClass(clazz);
 
-        String sql = sbd.selectLimit(tableName, condition, 1);
+        String sql = sbd.selectGroupByAndLimit(tableName, condition, groupColumns, havingCondition, 1);
         try (Connection connection = dam.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
+            if(condition != null && !condition.isEmpty() && conditionValues != null)
+                for (int i = 0; i < conditionValues.length; i++) {
+                    statement.setObject(i + 1, conditionValues[i]);
+                }
 
-            for (int i = 0; i < conditionValues.length; i++) {
-                statement.setObject(i + 1, conditionValues[i]);
-            }
+            if(havingCondition != null && !havingCondition.isEmpty() && havingConditionValues != null)
+                for(int i = 0; i< havingConditionValues.length; i++){
+                    statement.setObject(i + 1 +conditionValues.length, havingConditionValues[i]);
+                }
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 dam.closeConnection(connection);
@@ -104,49 +109,30 @@ public class CRUDManager {
 
         return null;
     }
-//    public <T extends ActiveRecord> T selectFirst
-//            (Class clazz, String sql, int maxDepth) {
-//        if (maxDepth <= 0) {
-//            return null;
-//        }
-//
-//        try (Connection connection = dam.getConnection();
-//             PreparedStatement statement = connection.prepareStatement(sql)) {
-//
-//            try (ResultSet resultSet = statement.executeQuery()) {
-//                dam.closeConnection(connection);
-//                if (resultSet.next()) {
-//                    T object = newInstance(clazz);
-//                    setFieldsFromResultSet(object, resultSet, maxDepth);
-//                    object.setConnectionManager(dam);
-//                    return object;
-//                }
-//            }
-//
-//        } catch (SQLException | InstantiationException | IllegalAccessException e) {
-//            e.printStackTrace();
-//        }
-//
-//        return null;
-//    }
     public <T extends ActiveRecord> List<T> selectAll
-            (String refTable, String condition, Object[] conditionValues, int maxDepth) {
+            (String refTable, String condition, Object[] conditionValues, String[] groupColumns, String havingCondition, Object[] havingConditionValues,int maxDepth) {
         if (maxDepth <= 0) {
             return null;
         }
         Class clazz = getClassForTableName(refTable);
         String tableName = getTableNameFromClass(clazz);
 
-        String sql = sbd.selectAll(tableName, condition);
+        String sql = sbd.selectAll(tableName, condition, groupColumns, havingCondition);
 
         List<T> relatedObjects = new ArrayList<>();
 
         try (Connection connection = dam.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            for (int i = 0; i < conditionValues.length; i++) {
-                statement.setObject(i + 1, conditionValues[i]);
-            }
+            if(condition != null && !condition.isEmpty() && conditionValues != null)
+                for (int i = 0; i < conditionValues.length; i++) {
+                    statement.setObject(i + 1, conditionValues[i]);
+                }
+
+            if(havingCondition != null && !havingCondition.isEmpty() && havingConditionValues != null)
+                for(int i = 0; i< havingConditionValues.length; i++){
+                    statement.setObject(i + 1 + (conditionValues == null? 0: conditionValues.length), havingConditionValues[i]);
+                }
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 dam.closeConnection(connection);
@@ -203,10 +189,9 @@ public class CRUDManager {
         Object joinColumnValue = resultSet.getObject(joinColumn);
         Object[] conditionValues = { joinColumnValue };
 
-
         // get class based on field
 
-        Object referencedObject = selectFirst(refTable, condition, conditionValues, maxDepth - 1);
+        Object referencedObject = selectFirst(refTable, condition, conditionValues,null,null,null, maxDepth - 1);
 
 
         field.set(object, referencedObject);
@@ -220,7 +205,7 @@ public class CRUDManager {
         maxDepth = (depthLimitAnnotation != null) ? depthLimitAnnotation.value() : maxDepth;
 
         for (Field field : object.getClass().getDeclaredFields()) {
-            if (!field.isSynthetic()) {
+            if (!field.isSynthetic() && columnExistInResultSet(resultSet, getColumnName(field))) {
                 field.setAccessible(true);
 
                 // Handle other fields as usual
@@ -247,6 +232,19 @@ public class CRUDManager {
             }
         }
     }
+    private boolean columnExistInResultSet(ResultSet rs, String column)
+    {
+        try
+        {
+            rs.findColumn(column);
+            return true;
+        } catch (SQLException sqlex)
+        {
+
+        }
+        return false;
+    }
+
     private void setOneToManyField(ActiveRecord object, Field field, ResultSet resultSet, OneToMany oneToManyAnnotation, int maxDepth) throws SQLException, IllegalAccessException {
         field.setAccessible(true);
 
@@ -261,7 +259,7 @@ public class CRUDManager {
 
 
         // Retrieve the list of related objects
-        List<ActiveRecord> relatedObjects = selectAll(refTable, condition, conditionValues, maxDepth - 1);
+        List<ActiveRecord> relatedObjects = selectAll(refTable, condition, conditionValues, null, null, null, maxDepth - 1);
 
         // Set the collection of related objects to the field
         field.set(object, relatedObjects);
@@ -281,7 +279,7 @@ public class CRUDManager {
         Object[] conditionValues = { joinColumnValue };
 
         // get class based on field
-        Object referencedObject = selectFirst(refTable, condition, conditionValues, maxDepth - 1);
+        Object referencedObject = selectFirst(refTable, condition, conditionValues, null,null,null,maxDepth - 1);
 
         field.set(object, referencedObject);
 

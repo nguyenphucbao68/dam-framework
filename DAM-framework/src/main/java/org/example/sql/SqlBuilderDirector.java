@@ -32,16 +32,22 @@ public class SqlBuilderDirector {
                 .where(obj.getWherePrimaryKey())
                 .result();
     }
-    public String selectAll(String tablename, String condition){
+    public String selectAll(String tablename, String condition, String[] groupByColumns, String havingCondition){
         return sb.select()
+                .selectedColumn(groupByColumns)
                 .from(tablename)
                 .where(condition)
+                .groupBy(groupByColumns)
+                .having(groupByColumns, havingCondition)
                 .result();
     }
-    public String selectLimit(String tablename, String condition, int limitNum){
+    public String selectGroupByAndLimit(String tablename, String condition, String[] groupByColumns, String havingCondition, int limitNum){
         return sb.select()
+                .selectedColumn(groupByColumns)
                 .from(tablename)
                 .where(condition)
+                .groupBy(groupByColumns)
+                .having(groupByColumns, havingCondition)
                 .limit(limitNum)
                 .result();
     }

@@ -4,15 +4,10 @@ import org.example.sql.CRUDManager;
 import org.example.sql.DatabaseConnectionManagment;
 
 import java.lang.reflect.Field;
-import java.io.File;
-import java.net.URL;
-import java.net.URLDecoder;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.lang.annotation.*;
-import java.io.IOException;
 
 
 public class ActiveRecord {
@@ -43,7 +38,7 @@ public class ActiveRecord {
         StringBuilder columns = new StringBuilder();
         for (Field field : getClass().getDeclaredFields()) {
             if (!field.isSynthetic() && !isIdField(field)) {
-                if (columns.length() > 0) {
+                if (!columns.isEmpty()) {
                     columns.append(", ");
                 }
                 columns.append(getColumnName(field));
@@ -57,7 +52,7 @@ public class ActiveRecord {
         StringBuilder values = new StringBuilder();
         for (Field field : getClass().getDeclaredFields()) {
             if (!field.isSynthetic() && !isIdField(field)) {
-                if (values.length() > 0) {
+                if (!values.isEmpty()) {
                     values.append(", ");
                 }
                 values.append("?");
@@ -70,29 +65,37 @@ public class ActiveRecord {
         Table tableAnnotation = clazz.getAnnotation(Table.class);
         return tableAnnotation != null ? tableAnnotation.name() : "";
     }
-
+    //select where group by having limit 1
+    public <T extends ActiveRecord> T getFirst(String refTable, String condition, Object[] conditionValues, String[] groupColumns, String havingCondition, Object[] havingConditionValues, int maxDepth) throws SQLException {
+        if (dam == null)
+            throw new SQLException("Connection is null");
+        return CRUDm.selectFirst(refTable, condition, conditionValues, groupColumns, havingCondition, havingConditionValues, maxDepth);
+    }
+    //select group by having limit 1
+    public <T extends ActiveRecord> T getFirst(String refTable, String[] groupColumns, String havingCondition, Object[] havingConditionValues, int maxDepth) throws SQLException {
+        if (dam == null)
+            throw new SQLException("Connection is null");
+        return CRUDm.selectFirst(refTable, null, null, groupColumns, havingCondition, havingConditionValues, maxDepth);
+    }
+    //select where limit 1
     public <T extends ActiveRecord> T getFirst(String refTable, String condition, Object[] conditionValues, int maxDepth) throws SQLException {
         if (dam == null)
             throw new SQLException("Connection is null");
-        return CRUDm.selectFirst(refTable, condition, conditionValues, maxDepth);
+        return CRUDm.selectFirst(refTable, condition, conditionValues, null, null, null, maxDepth);
     }
-//    public <T extends ActiveRecord> T getFirst(String sql, int maxDepth) throws SQLException {
-//        if (dam == null)
-//            throw new SQLException("Connection is null");
-//        Class clazz = getClassForTableName(this.getTableName());
-//        return CRUDm.selectFirst(clazz, sql, maxDepth);
-//    }
-    private <T extends ActiveRecord> List<T> getRelatedObjects(String refTable, String condition, Object[] conditionValues, int maxDepth) throws SQLException {
+    //select limit 1
+    public <T extends ActiveRecord> T getFirst(String refTable, int maxDepth) throws SQLException {
         if (dam == null)
             throw new SQLException("Connection is null");
-        return CRUDm.selectAll(refTable, condition, conditionValues, maxDepth);
+        return CRUDm.selectFirst(refTable, null, null, null, null, null, maxDepth);
     }
-//    private <T extends ActiveRecord> List<T> getRelatedObjects(String sql, int maxDepth) throws SQLException {
-//        if (dam == null)
-//            throw new SQLException("Connection is null");
-//        Class clazz = getClassForTableName(this.getTableName());
-//        return CRUDm.selectAll(clazz, sql, maxDepth);
-//    }
+
+    public <T extends ActiveRecord> List<T> getRelatedObjects(String refTable, String condition, Object[] conditionValues, String[] groupColumns, String havingCondition, Object[] havingConditionValues, int maxDepth) throws SQLException {
+        if (dam == null)
+            throw new SQLException("Connection is null");
+        return CRUDm.selectAll(refTable, condition, conditionValues, groupColumns, havingCondition, havingConditionValues, maxDepth);
+    }
+
     public int update() throws SQLException {
         if (dam == null)
             throw new SQLException("Connection is null");

@@ -1,5 +1,7 @@
 package org.example.sql;
 
+import java.lang.reflect.Field;
+
 public class SqlBuilder {
     String sqlString = null;
     public SqlBuilder insert(){
@@ -34,6 +36,22 @@ public class SqlBuilder {
         sqlString = String.format("%s (%s)", sqlString, columnsString);
         return this;
     }
+    public SqlBuilder selectedColumn(String[] columns){
+        if(columns != null) {
+            StringBuilder columnsString = new StringBuilder();
+            for (String column : columns) {
+                if (!columnsString.isEmpty()) {
+                    columnsString.append(", ");
+                }
+                columnsString.append(column);
+            }
+            if (columns.length > 0) {
+                sqlString = sqlString.substring(0, sqlString.length() - 2);
+                sqlString = String.format("%s %s", sqlString, columnsString);
+            }
+        }
+        return this;
+    }
     public SqlBuilder value(String valuesString){
         sqlString = String.format("%s VALUES (%s)", sqlString, valuesString);
         return this;
@@ -43,15 +61,28 @@ public class SqlBuilder {
         return this;
     }
     public SqlBuilder where(String whereString){
-        sqlString = String.format("%s WHERE %s", sqlString, whereString);
+        if(whereString != null && !whereString.isEmpty())
+            sqlString = String.format("%s WHERE %s", sqlString, whereString);
         return this;
     }
-    public SqlBuilder groupBy(String groupByColumns){
-        sqlString = String.format("%s GROUP BY %s", sqlString, groupByColumns);
+    public SqlBuilder groupBy(String[] columns){
+        if(columns != null){
+            StringBuilder columnsString = new StringBuilder();
+            for (String column : columns) {
+                if (!columnsString.isEmpty()) {
+                    columnsString.append(", ");
+                }
+                columnsString.append(column);
+            }
+            if(columns.length > 0) {
+                sqlString = String.format("%s GROUP BY %s", sqlString, columnsString);
+            }
+        }
         return this;
     }
-    public SqlBuilder having(String havingString){
-        sqlString = String.format("%s HAVING %s", sqlString, havingString);
+    public SqlBuilder having(String[] groupByColumns, String havingString){
+        if(groupByColumns != null && groupByColumns.length > 0 && havingString != null && !havingString.isEmpty())
+            sqlString = String.format("%s HAVING %s", sqlString, havingString);
         return this;
     }
     public String result(){

@@ -18,17 +18,19 @@ public class Main {
 */
 
         // OneToMany
-        DatabaseConnectionManagment dam = new PostgresSqlConnectionManagement("localhost", 5432, "ticket", "postgres", "localdb");
+        DatabaseConnectionManagment dam = new PostgresSqlConnectionManagement("localhost", 5432, "ticket", "postgres", "postgres");
         User userModel = new User();
         userModel.setConnectionManager(dam);
 
         Object[] values = {};
+        Object[] havingValues = {};
+        String[] groupColumns = {"role"};
 
-        User user = userModel.getFirst("users", "true", values, 3);
-
-        for(Review t: user.getReviews()){
-            System.out.println(t);
-        }
+        User user = userModel.getFirst("users", 3);
+        System.out.println(user);
+//        for(Review t: user.getReviews()){
+//            System.out.println(t);
+//        }
 
     }
 }
