@@ -71,24 +71,7 @@ public class ActiveRecord {
             throw new SQLException("Connection is null");
         return CRUDm.selectFirst(refTable, condition, conditionValues, groupColumns, havingCondition, havingConditionValues, maxDepth);
     }
-    //select group by having limit 1
-    public <T extends ActiveRecord> T getFirst(String refTable, String[] groupColumns, String havingCondition, Object[] havingConditionValues, int maxDepth) throws SQLException {
-        if (dam == null)
-            throw new SQLException("Connection is null");
-        return CRUDm.selectFirst(refTable, null, null, groupColumns, havingCondition, havingConditionValues, maxDepth);
-    }
-    //select where limit 1
-    public <T extends ActiveRecord> T getFirst(String refTable, String condition, Object[] conditionValues, int maxDepth) throws SQLException {
-        if (dam == null)
-            throw new SQLException("Connection is null");
-        return CRUDm.selectFirst(refTable, condition, conditionValues, null, null, null, maxDepth);
-    }
-    //select limit 1
-    public <T extends ActiveRecord> T getFirst(String refTable, int maxDepth) throws SQLException {
-        if (dam == null)
-            throw new SQLException("Connection is null");
-        return CRUDm.selectFirst(refTable, null, null, null, null, null, maxDepth);
-    }
+
 
     public <T extends ActiveRecord> List<T> getRelatedObjects(String refTable, String condition, Object[] conditionValues, String[] groupColumns, String havingCondition, Object[] havingConditionValues, int maxDepth) throws SQLException {
         if (dam == null)

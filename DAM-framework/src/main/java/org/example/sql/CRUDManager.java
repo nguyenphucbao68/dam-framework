@@ -90,7 +90,7 @@ public class CRUDManager {
 
             if(havingCondition != null && !havingCondition.isEmpty() && havingConditionValues != null)
                 for(int i = 0; i< havingConditionValues.length; i++){
-                    statement.setObject(i + 1 +conditionValues.length, havingConditionValues[i]);
+                    statement.setObject(i + 1 + (conditionValues == null? 0: conditionValues.length), havingConditionValues[i]);
                 }
 
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -150,33 +150,7 @@ public class CRUDManager {
 
         return relatedObjects;
     }
-//    public <T extends ActiveRecord> List<T> selectAll
-//            (Class clazz, String sql, int maxDepth) {
-//        if (maxDepth <= 0) {
-//            return null;
-//        }
-//
-//        List<T> relatedObjects = new ArrayList<>();
-//
-//        try (Connection connection = dam.getConnection();
-//             PreparedStatement statement = connection.prepareStatement(sql)) {
-//
-//            try (ResultSet resultSet = statement.executeQuery()) {
-//                dam.closeConnection(connection);
-//                while (resultSet.next()) {
-//                    T object = newInstance(clazz);
-//                    setFieldsFromResultSet(object, resultSet, maxDepth);
-//                    object.setConnectionManager(dam);
-//                    relatedObjects.add(object);
-//                }
-//            }
-//
-//        } catch (SQLException | InstantiationException | IllegalAccessException e) {
-//            e.printStackTrace();
-//        }
-//
-//        return relatedObjects;
-//    }
+
     private void setOneToOneField(ActiveRecord object, Field field, ResultSet resultSet, OneToOne oneToOneAnnotation, int maxDepth) throws SQLException, IllegalAccessException {
         field.setAccessible(true);
 

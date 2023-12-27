@@ -23,11 +23,15 @@ public class Main {
         userModel.setConnectionManager(dam);
 
         Object[] values = {};
-        Object[] havingValues = {};
+        Object[] havingValues = {0};
         String[] groupColumns = {"role"};
 
-        User user = userModel.getFirst("users", 3);
-        System.out.println(user);
+//        User user = userModel.getFirst("users", null, null, null, null,null,3);
+//        System.out.println(user);
+
+        User user1 = userModel.getFirst("users", null, null, groupColumns, "role > ?", havingValues, 3);
+        System.out.println(user1);
+
 //        for(Review t: user.getReviews()){
 //            System.out.println(t);
 //        }
