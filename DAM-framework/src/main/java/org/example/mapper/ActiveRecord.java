@@ -12,8 +12,6 @@ import java.util.*;
 
 public class ActiveRecord {
     private static final ClassScanner classScanner = new ClassScanner();
-    private DatabaseConnectionManagment dam = null;
-    private CRUDManager CRUDm= null;
 
     static {
         // Replace "your.package.name" with the actual package where your model classes are located
@@ -65,37 +63,6 @@ public class ActiveRecord {
         Table tableAnnotation = clazz.getAnnotation(Table.class);
         return tableAnnotation != null ? tableAnnotation.name() : "";
     }
-    //select where group by having limit 1
-    public <T extends ActiveRecord> T getFirst(String refTable, String condition, Object[] conditionValues, String[] groupColumns, String havingCondition, Object[] havingConditionValues, int maxDepth) throws SQLException {
-        if (dam == null)
-            throw new SQLException("Connection is null");
-        return CRUDm.selectFirst(refTable, condition, conditionValues, groupColumns, havingCondition, havingConditionValues, maxDepth);
-    }
-
-
-    public <T extends ActiveRecord> List<T> getRelatedObjects(String refTable, String condition, Object[] conditionValues, String[] groupColumns, String havingCondition, Object[] havingConditionValues, int maxDepth) throws SQLException {
-        if (dam == null)
-            throw new SQLException("Connection is null");
-        return CRUDm.selectAll(refTable, condition, conditionValues, groupColumns, havingCondition, havingConditionValues, maxDepth);
-    }
-
-    public int update() throws SQLException {
-        if (dam == null)
-            throw new SQLException("Connection is null");
-        return CRUDm.update(this);
-    }
-    public int save() throws SQLException {
-        if (dam == null)
-            throw new SQLException("Connection is null");
-        return CRUDm.insert(this);
-    }
-    public int delete() throws SQLException {
-        if (dam == null)
-            throw new SQLException("Connection is null");
-        return CRUDm.delete(this);
-    }
-
-
     public static Class<?> getClassForTableName(String tableName) {
         return classScanner.getTableToClassMap().get(tableName);
     }
@@ -238,10 +205,5 @@ public class ActiveRecord {
         return sb.toString();
     }
 
-    //set connection manager
-    public void setConnectionManager(DatabaseConnectionManagment dam){
-        this.dam = dam;
-        this.CRUDm = new CRUDManager(dam);
-    }
 
 }

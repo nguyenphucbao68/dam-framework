@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 
 public class SqlBuilder {
     String sqlString = null;
+    String tableName = null;
     public SqlBuilder insert(){
         sqlString = "INSERT"; //INTO %s (%s) VALUES (%s)";
         return this;
@@ -29,6 +30,7 @@ public class SqlBuilder {
         return this;
     }
     public SqlBuilder from(String tableName){
+        this.tableName = tableName;
         sqlString = String.format("%s FROM %s", sqlString, tableName);
         return this;
     }
@@ -85,6 +87,13 @@ public class SqlBuilder {
             sqlString = String.format("%s HAVING %s", sqlString, havingString);
         return this;
     }
+    public void reset(){
+        sqlString = "";
+    }
+    public String getTableName() {
+        return tableName;
+    }
+
     public String result(){
         return sqlString;
     }
