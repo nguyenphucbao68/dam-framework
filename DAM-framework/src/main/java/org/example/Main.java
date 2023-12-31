@@ -24,7 +24,6 @@ public class Main {
         CRUDManager cm = new CRUDManager(dcm);
 
         Object[] conditionValues = {0};
-        Object[] havingValues = {0};
         String[] groupColumns = {"role"};
 
         //User a = new User(....)
