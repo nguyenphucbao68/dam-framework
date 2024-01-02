@@ -18,7 +18,7 @@ import static org.example.mapper.ActiveRecord.*;
 
 public class CRUDManager {
     private DatabaseConnectionManagment dam;
-    private final SqlBuilder sqlBuilder = new SqlBuilder();
+    private final SqlBuilder sqlBuilder = SqlBuilder.getInstance();
     private final SqlBuilderDirector sbd = new SqlBuilderDirector(sqlBuilder);
     public CRUDManager(DatabaseConnectionManagment dam){
         this.dam = dam;

@@ -5,6 +5,17 @@ import java.lang.reflect.Field;
 public class SqlBuilder {
     String sqlString = null;
     String tableName = null;
+    private static SqlBuilder sqlBuilder = null;
+
+    private SqlBuilder() {
+
+    }
+    public static SqlBuilder getInstance(){
+        if(sqlBuilder == null)
+            sqlBuilder = new SqlBuilder();
+        return sqlBuilder;
+    }
+
     public SqlBuilder insert(){
         sqlString = "INSERT"; //INTO %s (%s) VALUES (%s)";
         return this;
