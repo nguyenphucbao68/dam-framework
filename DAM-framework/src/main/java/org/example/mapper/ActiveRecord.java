@@ -127,12 +127,20 @@ public class ActiveRecord {
     public String getSetClause() {
         StringBuilder setClause = new StringBuilder();
         for (Field field : getClass().getDeclaredFields()) {
-            if (!field.isSynthetic() && !isIdField(field)) {
+            if (!field.isSynthetic() && !isRelationField(field)) {
                 setClause.append(getColumnName(field)).append(" = ?, ");
             }
         }
         return setClause.substring(0, setClause.length() - 2);
     }
+
+    public boolean isRelationField(Field field) {
+        return field.isAnnotationPresent(OneToMany.class)
+                || field.isAnnotationPresent(OneToOne.class)
+                || field.isAnnotationPresent(ManyToOne.class)
+                || field.isAnnotationPresent(ManyToMany.class);
+    }
+
     public String getWherePrimaryKey(){
         String wherePrimaryClause = "";
         for (Field field : getClass().getDeclaredFields()) {
@@ -162,19 +170,29 @@ public class ActiveRecord {
             }
         }
     }
-    public void setPrimaryKeyParameters(PreparedStatement statement) throws SQLException {
+    public void setPrimaryKeyParameters(PreparedStatement statement, boolean onlyID) throws SQLException {
         int index = 1;
+        Object id = null;
         for (Field field : getClass().getDeclaredFields()) {
-            if (!field.isSynthetic() && !isPrimaryKey(field)) {
+            if (!field.isSynthetic() && (!onlyID && !isRelationField(field)) || (onlyID && isPrimaryKey(field))) {
                 field.setAccessible(true);
                 try {
-                    statement.setObject(index, field.get(this));
+                    if(isPrimaryKey(field)){
+                        id = field.get(this);
+                    }
+                    if(onlyID){
+                        statement.setObject(index, field.get(this));
+                    }
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
                 field.setAccessible(false);
                 index++;
             }
+        }
+
+        if(!onlyID){
+            statement.setObject(index, id);
         }
     }
 
@@ -205,5 +223,96 @@ public class ActiveRecord {
         return sb.toString();
     }
 
+//    update value based on annotation Column name
+    public void updateValue(String columnName, Object value){
+        for (Field field : getClass().getDeclaredFields()) {
+            if (!field.isSynthetic()) {
+                field.setAccessible(true);
+                if(getColumnName(field).equals(columnName)){
+                    try {
+                        field.set(this, value);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+                field.setAccessible(false);
+            }
+        }
+    }
+    public void updateValue(Field field, Object value){
+        for (Field f : getClass().getDeclaredFields()) {
+            if (!f.isSynthetic()) {
+                f.setAccessible(true);
+                if(f.equals(field)){
+                    try {
+                        f.set(this, value);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+                f.setAccessible(false);
+            }
+        }
+    }
+    public void updateValue(String columnName, Object value, Class<?> clazz){
+        for (Field field : clazz.getDeclaredFields()) {
+            if (!field.isSynthetic()) {
+                field.setAccessible(true);
+                if(getColumnName(field).equals(columnName)){
+                    try {
+                        field.set(this, value);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+                field.setAccessible(false);
+            }
+        }
+    }
+    public void updateValue(Field field, Object value, Class<?> clazz){
+        for (Field f : clazz.getDeclaredFields()) {
+            if (!f.isSynthetic()) {
+                f.setAccessible(true);
+                if(f.equals(field)){
+                    try {
+                        f.set(this, value);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+                f.setAccessible(false);
+            }
+        }
+    }
+    public void updateValue(String columnName, Object value, ActiveRecord object){
+        for (Field field : object.getClass().getDeclaredFields()) {
+            if (!field.isSynthetic()) {
+                field.setAccessible(true);
+                if(getColumnName(field).equals(columnName)){
+                    try {
+                        field.set(object, value);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+                field.setAccessible(false);
+            }
+        }
+    }
+    public void updateValue(Field field, Object value, ActiveRecord object) {
+        for (Field f : object.getClass().getDeclaredFields()) {
+            if (!f.isSynthetic()) {
+                f.setAccessible(true);
+                if (f.equals(field)) {
+                    try {
+                        f.set(object, value);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+                f.setAccessible(false);
 
+            }
+        }
+    }
 }

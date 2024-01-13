@@ -70,7 +70,7 @@ public class SqlBuilder {
         return this;
     }
     public SqlBuilder setValues(String setValuesString){
-        sqlString = String.format("%s SET (%s)", sqlString, setValuesString);
+        sqlString = String.format("%s SET %s", sqlString, setValuesString);
         return this;
     }
     public SqlBuilder where(String whereString){

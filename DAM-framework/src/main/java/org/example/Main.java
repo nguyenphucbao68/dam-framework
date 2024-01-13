@@ -20,7 +20,7 @@ public class Main {
 */
 
         // OneToMany
-        DatabaseConnectionManagment dcm = new PostgresSqlConnectionManagement("localhost", 5432, "ticket", "postgres", "postgres");
+        DatabaseConnectionManagment dcm = new PostgresSqlConnectionManagement("localhost", 5432, "ticket", "postgres", "localdb");
         CRUDManager cm = new CRUDManager(dcm);
 
         Object[] conditionValues = {0};
@@ -30,16 +30,30 @@ public class Main {
         //cm.executeInsert(a);
 
 
+//        List<User> uList = cm.executeSelect(cm.sqlBuidler()
+//                .select()
+//                .selectedColumn(groupColumns)
+//                .from("users")
+//                .groupBy(groupColumns)
+//                .limit(3)
+//                .result(),null, 1);
         List<User> uList = cm.executeSelect(cm.sqlBuidler()
                 .select()
-                .selectedColumn(groupColumns)
                 .from("users")
-                .groupBy(groupColumns)
-                .limit(3)
+                .limit(2)
                 .result(),null, 1);
 
+        int i = 0;
         for(User t: uList){
             System.out.println(t);
+//            i++;
+//            if(i == 2){
+//                System.out.println(t);
+//                cm.executeDelete(t);
+//            }
+//            t.setDisplayName("Test");
+//
+            cm.executeUpdate(t);
         }
 
 

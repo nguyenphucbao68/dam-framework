@@ -38,5 +38,14 @@ public class User extends ActiveRecord {
     public List<Review> getReviews() {
         return reviews;
     }
+
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
+    }
+
+    // set display_name
+    public void setDisplayName(String display_name) {
+        this.display_name = display_name;
+    }
 }
 
