@@ -43,4 +43,8 @@ public class Blog extends ActiveRecord {
 
     public Blog() {
     }
+
+    public void setTitle(String title){
+        this.title = title;
+    }
 }

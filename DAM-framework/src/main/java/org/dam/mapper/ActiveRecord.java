@@ -156,7 +156,7 @@ public class ActiveRecord {
                     if(isPrimaryKey(field) && mode != 2){
                         id = value;
                     }
-                    if(mode == 0 || (mode == 2 && (!isGeneratedValueField(field) || (isGeneratedValueField(field) && value != null)))){
+                    if(mode == 0 || mode == 1 || (mode == 2 && (!isGeneratedValueField(field) || (isGeneratedValueField(field) && value != null)))){
                         statement.setObject(index, value);
                         index++;
                     }

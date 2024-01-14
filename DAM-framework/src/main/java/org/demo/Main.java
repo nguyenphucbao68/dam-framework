@@ -52,13 +52,21 @@ public class Main {
 //                .result(),null, 1);
 
 
-        ActiveRecord b = new Blog(
+        Blog b = new Blog(
+                UUID.fromString("1210f54f-b50c-4dca-a9d1-a19e7170a99d"),
                 "Test Blog 2",
                 "This is a test blog",
                 "https://www.google.com"
         );
 
-        cm.executeInsert(b);
+//        cm.executeInsert(b);
 
+        // UPDATE
+//        b.setTitle("Test Blog 2 Updated");
+//
+//        cm.executeUpdate(b);
+
+        // DELETE
+        cm.executeDelete(b);
     }
 }
