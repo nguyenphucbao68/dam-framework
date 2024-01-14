@@ -1,6 +1,6 @@
-package org.example.sql;
+package org.dam.sql;
 
-import org.example.mapper.ActiveRecord;
+import org.dam.mapper.ActiveRecord;
 
 public class SqlBuilderDirector {
     private SqlBuilder sb = null;

@@ -1,5 +1,5 @@
-package org.example.mapper;
-import org.example.annotation.*;
+package org.dam.mapper;
+import org.dam.annotation.*;
 
 import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
@@ -44,10 +44,17 @@ public class ActiveRecord {
                 if (!values.isEmpty()) {
                     values.append(", ");
                 }
-                if(isIdField(field) && isGeneratedValueField(field))
-                    values.append("'"+UUID.randomUUID()+"'");
-                else
-                    values.append("?");
+                field.setAccessible(true);
+                try {
+                    if(isIdField(field) && isGeneratedValueField(field) && field.get(this) == null)
+                        values.append("'"+UUID.randomUUID()+"'");
+                    else
+                        values.append("?");
+                }  catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+
+                field.setAccessible(false);
             }
         }
         return values.toString();
@@ -79,15 +86,6 @@ public class ActiveRecord {
         return generatedColumns.toArray(new String[0]);
     }
 
-    public String[] getGeneratedColumnsValues() {
-        List<String> generatedColumnsValues = new ArrayList<>();
-        for (Field field : getClass().getDeclaredFields()) {
-            if (isGeneratedValueField(field)) {
-                generatedColumnsValues.add("'"+UUID.randomUUID()+"'");
-            }
-        }
-        return generatedColumnsValues.toArray(new String[0]);
-    }
 
     public boolean hasGeneratedColumns() {
         return getGeneratedColumns().length > 0;
@@ -154,14 +152,12 @@ public class ActiveRecord {
             if (!field.isSynthetic() && ((mode == 0 || mode == 2) && !isRelationField(field)) || (mode == 1 && isPrimaryKey(field))) {
                 field.setAccessible(true);
                 try {
+                    Object value = field.get(this);
                     if(isPrimaryKey(field) && mode != 2){
-                        System.out.println("Primary key: " + field.get(this));
-                        id = field.get(this);
+                        id = value;
                     }
-                    if(mode == 0 || (mode == 2 && !isGeneratedValueField(field))){
-                        System.out.println("Set parameter: " + field.get(this));
-
-                        statement.setObject(index, field.get(this));
+                    if(mode == 0 || (mode == 2 && (!isGeneratedValueField(field) || (isGeneratedValueField(field) && value != null)))){
+                        statement.setObject(index, value);
                         index++;
                     }
                 } catch (IllegalAccessException e) {
@@ -172,7 +168,6 @@ public class ActiveRecord {
         }
 
         if(mode == 0 && id != null){
-            System.out.println("Set parameter2: " + id);
             statement.setObject(index, id);
         }
     }

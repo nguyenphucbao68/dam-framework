@@ -1,10 +1,10 @@
-package org.example.sql;
+package org.dam.sql;
 
-import org.example.annotation.DepthLimit;
-import org.example.annotation.ManyToOne;
-import org.example.annotation.OneToMany;
-import org.example.annotation.OneToOne;
-import org.example.mapper.ActiveRecord;
+import org.dam.annotation.DepthLimit;
+import org.dam.annotation.ManyToOne;
+import org.dam.annotation.OneToMany;
+import org.dam.annotation.OneToOne;
+import org.dam.mapper.ActiveRecord;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -14,7 +14,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.example.mapper.ActiveRecord.*;
+import static org.dam.mapper.ActiveRecord.*;
 
 public class CRUDManager {
     private DatabaseConnectionManagment dam;
@@ -29,7 +29,6 @@ public class CRUDManager {
     }
     public boolean executeInsert(ActiveRecord obj) {
         String sql = sbd.insert(obj);
-        System.out.println(sql);
 
         boolean execution = false;
 
@@ -52,7 +51,6 @@ public class CRUDManager {
     public boolean executeDelete(ActiveRecord obj) {
         String sql = sbd.delete(obj);
         boolean execution = false;
-        System.out.println(sql);
         try (Connection connection = dam.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             obj.setPrimaryKeyParameters(statement, 1);
