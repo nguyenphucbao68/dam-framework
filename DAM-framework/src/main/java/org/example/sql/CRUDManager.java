@@ -93,7 +93,6 @@ public class CRUDManager {
                 }
 
             try (ResultSet resultSet = statement.executeQuery()) {
-//                dam.closeConnection(connection);
                 while (resultSet.next()) {
                     T object = newInstance(clazz);
                     setFieldsFromResultSet(object, resultSet, maxDepth);

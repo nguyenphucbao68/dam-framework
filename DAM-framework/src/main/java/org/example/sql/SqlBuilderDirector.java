@@ -10,10 +10,7 @@ public class SqlBuilderDirector {
     public String insert(ActiveRecord obj){
         String columns = obj.getColumnsString();
         String values = obj.getValuesString();
-//        if (obj.hasGeneratedColumns()) {
-//            columns += ", " + String.join(", ", obj.getGeneratedColumns());
-//            values += ", " + String.join(", ", obj.getGeneratedColumnsValues());
-//        }
+
         return sb.insert()
                 .into(obj.getTableName())
                 .column(columns)

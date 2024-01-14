@@ -1,7 +1,5 @@
 package org.example.mapper;
 import org.example.annotation.*;
-import org.example.sql.CRUDManager;
-import org.example.sql.DatabaseConnectionManagment;
 
 import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
@@ -11,13 +9,6 @@ import java.util.*;
 
 
 public class ActiveRecord {
-//    private static final ClassScanner classScanner = new ClassScanner();
-//
-//    static {
-//        // Replace "your.package.name" with the actual package where your model classes are located
-//        classScanner.scanClassesWithAnnotation("org.example", Table.class);
-//    }
-
     public String getTableName() {
         Table tableAnnotation = getClass().getAnnotation(Table.class);
         return tableAnnotation != null ? tableAnnotation.name() : "";
@@ -62,10 +53,7 @@ public class ActiveRecord {
         return values.toString();
     }
 
-    public static String getTableNameFromClass(Class<?> clazz) {
-        Table tableAnnotation = clazz.getAnnotation(Table.class);
-        return tableAnnotation != null ? tableAnnotation.name() : "";
-    }
+
     public static Class<?> getClassForTableName(String tableName) {
         return ORMManagement.getClassScanner().getTableToClassMap().get(tableName);
     }
@@ -158,21 +146,7 @@ public class ActiveRecord {
         }
         return wherePrimaryClause;
     }
-    public void setParameters(PreparedStatement statement) throws SQLException {
-        int index = 1;
-        for (Field field : getClass().getDeclaredFields()) {
-            if (!field.isSynthetic() && !isIdField(field)) {
-                field.setAccessible(true);
-                try {
-                    statement.setObject(index, field.get(this));
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-                field.setAccessible(false);
-                index++;
-            }
-        }
-    }
+
     public void setPrimaryKeyParameters(PreparedStatement statement, int mode) throws SQLException {
         int index = 1;
         Object id = null;
