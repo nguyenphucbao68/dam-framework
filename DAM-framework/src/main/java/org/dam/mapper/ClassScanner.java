@@ -1,6 +1,6 @@
-package org.example.mapper;
+package org.dam.mapper;
 
-import org.example.annotation.Table;
+import org.dam.annotation.Table;
 
 import java.io.File;
 import java.io.IOException;

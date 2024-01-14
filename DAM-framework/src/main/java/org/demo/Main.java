@@ -1,10 +1,10 @@
 package org.demo;
 import org.demo.models.Blog;
-import org.example.mapper.ActiveRecord;
-import org.example.mapper.ORMManagement;
-import org.example.sql.CRUDManager;
-import org.example.sql.DatabaseConnectionManagment;
-import org.example.sql.PostgresSqlConnectionManagement;
+import org.dam.mapper.ActiveRecord;
+import org.dam.mapper.ORMManagement;
+import org.dam.sql.CRUDManager;
+import org.dam.sql.DatabaseConnectionManagment;
+import org.dam.sql.PostgresSqlConnectionManagement;
 import org.demo.models.Review;
 import org.demo.models.User;
 
@@ -28,17 +28,17 @@ public class Main {
         CRUDManager cm = new CRUDManager(dcm);
 
         // QUERY
-        List<User> uList = cm.executeSelect(cm.sqlBuidler()
-                .select()
-                .from("users")
-                .limit(2)
-                .result(),null, 2);
-
-        for(User t: uList){
-            for(Review r: t.getReviews()){
-                System.out.println(r);
-            }
-        }
+//        List<User> uList = cm.executeSelect(cm.sqlBuidler()
+//                .select()
+//                .from("users")
+//                .limit(2)
+//                .result(),null, 2);
+//
+//        for(User t: uList){
+//            for(Review r: t.getReviews()){
+//                System.out.println(r);
+//            }
+//        }
 
 //        Object[] conditionValues = {0};
 //        String[] groupColumns = {"role"};
@@ -52,14 +52,21 @@ public class Main {
 //                .result(),null, 1);
 
 
-        ActiveRecord b = new Blog(
-                UUID.fromString("ee10f54f-b50c-4dca-a9d1-a19e7170a99d"),
+        Blog b = new Blog(
+                UUID.fromString("1210f54f-b50c-4dca-a9d1-a19e7170a99d"),
                 "Test Blog 2",
                 "This is a test blog",
                 "https://www.google.com"
         );
 
-        cm.executeDelete(b);
+//        cm.executeInsert(b);
 
+        // UPDATE
+//        b.setTitle("Test Blog 2 Updated");
+//
+//        cm.executeUpdate(b);
+
+        // DELETE
+        cm.executeDelete(b);
     }
 }
