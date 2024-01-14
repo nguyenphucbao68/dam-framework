@@ -11,12 +11,12 @@ import java.util.*;
 
 
 public class ActiveRecord {
-    private static final ClassScanner classScanner = new ClassScanner();
-
-    static {
-        // Replace "your.package.name" with the actual package where your model classes are located
-        classScanner.scanClassesWithAnnotation("org.example", Table.class);
-    }
+//    private static final ClassScanner classScanner = new ClassScanner();
+//
+//    static {
+//        // Replace "your.package.name" with the actual package where your model classes are located
+//        classScanner.scanClassesWithAnnotation("org.example", Table.class);
+//    }
 
     public String getTableName() {
         Table tableAnnotation = getClass().getAnnotation(Table.class);
@@ -67,7 +67,7 @@ public class ActiveRecord {
         return tableAnnotation != null ? tableAnnotation.name() : "";
     }
     public static Class<?> getClassForTableName(String tableName) {
-        return classScanner.getTableToClassMap().get(tableName);
+        return ORMManagement.getClassScanner().getTableToClassMap().get(tableName);
     }
 
     private boolean isIdField(Field field) {
@@ -229,4 +229,5 @@ public class ActiveRecord {
         }
         return sb.toString();
     }
+
 }

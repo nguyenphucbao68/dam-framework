@@ -76,9 +76,7 @@ public class CRUDManager {
         }
         return execution;
     }
-    public <T extends ActiveRecord> List<T> executeSelect
-//            (String refTable, String condition, Object[] conditionValues, String[] groupColumns, String havingCondition, Object[] havingConditionValues,int maxDepth)
-    (String sql, Object[] conditionValues, int maxDepth)
+    public <T extends ActiveRecord> List<T> executeSelect(String sql, Object[] conditionValues, int maxDepth)
     {
         if (maxDepth <= 0) {
             return null;

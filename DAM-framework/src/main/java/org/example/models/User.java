@@ -48,6 +48,8 @@ public class User extends ActiveRecord {
         this.display_name = display_name;
     }
 
+    public User(){}
+
     public User(
         String email,
         Integer role,

@@ -1,4 +1,6 @@
 package org.example;
+//import org.example.mapper.ORMManagement;
+import org.example.mapper.ORMManagement;
 import org.example.models.*;
 import org.example.sql.CRUDManager;
 import org.example.sql.DatabaseConnectionManagment;
@@ -10,27 +12,36 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws SQLException {
-/*
-        // OneToOne
-        Review reviewModel = new Review();
-        Object[] values = {};
+        // SETUP ORM LIBRARY
+        ORMManagement.setPackageName("org.example");
+        ORMManagement.save();
 
-        Review review = reviewModel.getFirst("reviews", "true", values);
+        // SETUP DATABASE CONNECTION
+        DatabaseConnectionManagment dcm = new PostgresSqlConnectionManagement(
+                "localhost",
+                5432,
+                "ticket",
+                "postgres",
+                "localdb");
 
-        System.out.println(review.getUser().toString());
-*/
-
-        // OneToMany
-        DatabaseConnectionManagment dcm = new PostgresSqlConnectionManagement("localhost", 5432, "ticket", "postgres", "localdb");
         CRUDManager cm = new CRUDManager(dcm);
 
-        Object[] conditionValues = {0};
-        String[] groupColumns = {"role"};
+        // QUERY
+        List<User> uList = cm.executeSelect(cm.sqlBuidler()
+                .select()
+                .from("users")
+                .limit(2)
+                .result(),null, 2);
 
-        //User a = new User(....)
-        //cm.executeInsert(a);
+        for(User t: uList){
+            for(Review r: t.getReviews()){
+                System.out.println(r);
+            }
+        }
 
-
+//        Object[] conditionValues = {0};
+//        String[] groupColumns = {"role"};
+//
 //        List<User> uList = cm.executeSelect(cm.sqlBuidler()
 //                .select()
 //                .selectedColumn(groupColumns)
@@ -38,27 +49,11 @@ public class Main {
 //                .groupBy(groupColumns)
 //                .limit(3)
 //                .result(),null, 1);
-//        List<User> uList = cm.executeSelect(cm.sqlBuidler()
-//                .select()
-//                .from("users")
-//                .limit(2)
-//                .result(),null, 1);
 
-//        int i = 0;
-//        for(User t: uList){
-//            System.out.println(t);
-//            i++;
-//            if(i == 2){
-//                System.out.println(t);
-//                cm.executeDelete(t);
-//            }
-//            t.setDisplayName("Test");
+
+//        Blog b = new Blog("Vui là chính", "Test", "Test");
 //
-//            cm.executeUpdate(t);
-//        }
-        Blog b = new Blog("Test", "Test", "Test");
-
-        cm.executeInsert(b);
+//        cm.executeInsert(b);
 
     }
 }
