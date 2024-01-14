@@ -1,7 +1,7 @@
 package org.demo.models;
 
-import org.example.annotation.*;
-import org.example.mapper.ActiveRecord;
+import org.dam.annotation.*;
+import org.dam.mapper.ActiveRecord;
 
 import java.util.Date;
 import java.util.UUID;
@@ -42,5 +42,9 @@ public class Blog extends ActiveRecord {
     }
 
     public Blog() {
+    }
+
+    public void setTitle(String title){
+        this.title = title;
     }
 }

@@ -1,6 +1,4 @@
-package org.example.sql;
-
-import java.lang.reflect.Field;
+package org.dam.sql;
 
 public class SqlBuilder {
     String sqlString = null;

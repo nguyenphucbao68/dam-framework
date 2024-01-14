@@ -1,10 +1,10 @@
 package org.demo;
 import org.demo.models.Blog;
-import org.example.mapper.ActiveRecord;
-import org.example.mapper.ORMManagement;
-import org.example.sql.CRUDManager;
-import org.example.sql.DatabaseConnectionManagment;
-import org.example.sql.PostgresSqlConnectionManagement;
+import org.dam.mapper.ActiveRecord;
+import org.dam.mapper.ORMManagement;
+import org.dam.sql.CRUDManager;
+import org.dam.sql.DatabaseConnectionManagment;
+import org.dam.sql.PostgresSqlConnectionManagement;
 import org.demo.models.Review;
 import org.demo.models.User;
 
@@ -52,14 +52,21 @@ public class Main {
 //                .result(),null, 1);
 
 
-        ActiveRecord b = new Blog(
-                UUID.fromString("c118f693-8722-4461-a79d-d76991b96fdf"),
+        Blog b = new Blog(
+                UUID.fromString("25d9ea5f-5996-4c69-a242-b943a1832d2e"),
                 "Test Blog 2",
                 "This is a test blog",
                 "https://www.google.com"
         );
 
-        cm.executeDelete(b);
+        cm.executeInsert(b);
 
+        // UPDATE
+        b.setTitle("Test Blog 2 Updated");
+//
+        cm.executeUpdate(b);
+
+        // DELETE
+        cm.executeDelete(b);
     }
 }

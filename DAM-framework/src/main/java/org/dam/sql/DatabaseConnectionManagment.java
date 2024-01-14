@@ -1,4 +1,4 @@
-package org.example.sql;
+package org.dam.sql;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
