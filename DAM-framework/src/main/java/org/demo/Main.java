@@ -28,17 +28,17 @@ public class Main {
         CRUDManager cm = new CRUDManager(dcm);
 
         // QUERY
-//        List<User> uList = cm.executeSelect(cm.sqlBuidler()
-//                .select()
-//                .from("users")
-//                .limit(2)
-//                .result(),null, 2);
-//
-//        for(User t: uList){
-//            for(Review r: t.getReviews()){
-//                System.out.println(r);
-//            }
-//        }
+        List<User> uList = cm.executeSelect(cm.sqlBuidler()
+                .select()
+                .from("users")
+                .limit(2)
+                .result(),null, 2);
+
+        for(User t: uList){
+            for(Review r: t.getReviews()){
+                System.out.println(r);
+            }
+        }
 
 //        Object[] conditionValues = {0};
 //        String[] groupColumns = {"role"};
@@ -53,18 +53,18 @@ public class Main {
 
 
         Blog b = new Blog(
-                UUID.fromString("1210f54f-b50c-4dca-a9d1-a19e7170a99d"),
+                UUID.fromString("25d9ea5f-5996-4c69-a242-b943a1832d2e"),
                 "Test Blog 2",
                 "This is a test blog",
                 "https://www.google.com"
         );
 
-//        cm.executeInsert(b);
+        cm.executeInsert(b);
 
         // UPDATE
-//        b.setTitle("Test Blog 2 Updated");
+        b.setTitle("Test Blog 2 Updated");
 //
-//        cm.executeUpdate(b);
+        cm.executeUpdate(b);
 
         // DELETE
         cm.executeDelete(b);
