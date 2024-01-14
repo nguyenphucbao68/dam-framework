@@ -5,6 +5,7 @@ import org.example.sql.DatabaseConnectionManagment;
 import org.example.sql.PostgresSqlConnectionManagement;
 
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 
 public class Main {
@@ -37,15 +38,15 @@ public class Main {
 //                .groupBy(groupColumns)
 //                .limit(3)
 //                .result(),null, 1);
-        List<User> uList = cm.executeSelect(cm.sqlBuidler()
-                .select()
-                .from("users")
-                .limit(2)
-                .result(),null, 1);
+//        List<User> uList = cm.executeSelect(cm.sqlBuidler()
+//                .select()
+//                .from("users")
+//                .limit(2)
+//                .result(),null, 1);
 
-        int i = 0;
-        for(User t: uList){
-            System.out.println(t);
+//        int i = 0;
+//        for(User t: uList){
+//            System.out.println(t);
 //            i++;
 //            if(i == 2){
 //                System.out.println(t);
@@ -53,10 +54,11 @@ public class Main {
 //            }
 //            t.setDisplayName("Test");
 //
-            cm.executeUpdate(t);
-        }
+//            cm.executeUpdate(t);
+//        }
+        Blog b = new Blog("Test", "Test", "Test");
 
-
+        cm.executeInsert(b);
 
     }
 }

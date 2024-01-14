@@ -35,7 +35,7 @@ public class ActiveRecord {
     public String getColumnsString() {
         StringBuilder columns = new StringBuilder();
         for (Field field : getClass().getDeclaredFields()) {
-            if (!field.isSynthetic() && !isIdField(field)) {
+            if (!field.isSynthetic() && !isRelationField(field)) {
                 if (!columns.isEmpty()) {
                     columns.append(", ");
                 }
@@ -49,11 +49,14 @@ public class ActiveRecord {
     public String getValuesString() {
         StringBuilder values = new StringBuilder();
         for (Field field : getClass().getDeclaredFields()) {
-            if (!field.isSynthetic() && !isIdField(field)) {
+            if (!field.isSynthetic() && !isRelationField(field)) {
                 if (!values.isEmpty()) {
                     values.append(", ");
                 }
-                values.append("?");
+                if(isIdField(field) && isGeneratedValueField(field))
+                    values.append("'"+UUID.randomUUID()+"'");
+                else
+                    values.append("?");
             }
         }
         return values.toString();
@@ -170,28 +173,32 @@ public class ActiveRecord {
             }
         }
     }
-    public void setPrimaryKeyParameters(PreparedStatement statement, boolean onlyID) throws SQLException {
+    public void setPrimaryKeyParameters(PreparedStatement statement, int mode) throws SQLException {
         int index = 1;
         Object id = null;
         for (Field field : getClass().getDeclaredFields()) {
-            if (!field.isSynthetic() && (!onlyID && !isRelationField(field)) || (onlyID && isPrimaryKey(field))) {
+            if (!field.isSynthetic() && ((mode == 0 || mode == 2) && !isRelationField(field)) || (mode == 1 && isPrimaryKey(field))) {
                 field.setAccessible(true);
                 try {
-                    if(isPrimaryKey(field)){
+                    if(isPrimaryKey(field) && mode != 2){
+                        System.out.println("Primary key: " + field.get(this));
                         id = field.get(this);
                     }
-                    if(onlyID){
+                    if(mode == 0 || (mode == 2 && !isGeneratedValueField(field))){
+                        System.out.println("Set parameter: " + field.get(this));
+
                         statement.setObject(index, field.get(this));
+                        index++;
                     }
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
                 field.setAccessible(false);
-                index++;
             }
         }
 
-        if(!onlyID){
+        if(mode == 0 && id != null){
+            System.out.println("Set parameter2: " + id);
             statement.setObject(index, id);
         }
     }
