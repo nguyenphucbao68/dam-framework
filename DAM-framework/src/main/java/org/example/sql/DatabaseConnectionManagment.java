@@ -12,7 +12,7 @@ public abstract class DatabaseConnectionManagment {
     protected String databaseName = null;
     protected String user = "";
     protected String password = "";
-    private int maxPool = 5;
+    private int maxPool = 20;
     private List<Connection> connectionPool = new ArrayList<>();
 
     protected DatabaseConnectionManagment(String hostname, int port, String databaseName, String user, String password){

@@ -53,7 +53,6 @@ public class ActiveRecord {
         return values.toString();
     }
 
-
     public static Class<?> getClassForTableName(String tableName) {
         return ORMManagement.getClassScanner().getTableToClassMap().get(tableName);
     }
@@ -176,7 +175,6 @@ public class ActiveRecord {
             statement.setObject(index, id);
         }
     }
-
 
     public static <T extends ActiveRecord> T newInstance(Class<?> clazz) throws IllegalAccessException, InstantiationException {
         try {

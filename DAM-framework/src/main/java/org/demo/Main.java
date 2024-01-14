@@ -23,7 +23,7 @@ public class Main {
                 5432,
                 "ticket",
                 "postgres",
-                "localdb");
+                "postgres");
 
         CRUDManager cm = new CRUDManager(dcm);
 
@@ -53,7 +53,7 @@ public class Main {
 
 
         ActiveRecord b = new Blog(
-                UUID.fromString("ee10f54f-b50c-4dca-a9d1-a19e7170a99d"),
+                UUID.fromString("c118f693-8722-4461-a79d-d76991b96fdf"),
                 "Test Blog 2",
                 "This is a test blog",
                 "https://www.google.com"
