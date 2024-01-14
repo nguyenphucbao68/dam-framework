@@ -35,7 +35,7 @@ public class ActiveRecord {
     public String getColumnsString() {
         StringBuilder columns = new StringBuilder();
         for (Field field : getClass().getDeclaredFields()) {
-            if (!field.isSynthetic() && !isIdField(field)) {
+            if (!field.isSynthetic() && !isRelationField(field)) {
                 if (!columns.isEmpty()) {
                     columns.append(", ");
                 }
@@ -49,11 +49,14 @@ public class ActiveRecord {
     public String getValuesString() {
         StringBuilder values = new StringBuilder();
         for (Field field : getClass().getDeclaredFields()) {
-            if (!field.isSynthetic() && !isIdField(field)) {
+            if (!field.isSynthetic() && !isRelationField(field)) {
                 if (!values.isEmpty()) {
                     values.append(", ");
                 }
-                values.append("?");
+                if(isIdField(field) && isGeneratedValueField(field))
+                    values.append("'"+UUID.randomUUID()+"'");
+                else
+                    values.append("?");
             }
         }
         return values.toString();
@@ -127,12 +130,20 @@ public class ActiveRecord {
     public String getSetClause() {
         StringBuilder setClause = new StringBuilder();
         for (Field field : getClass().getDeclaredFields()) {
-            if (!field.isSynthetic() && !isIdField(field)) {
+            if (!field.isSynthetic() && !isRelationField(field)) {
                 setClause.append(getColumnName(field)).append(" = ?, ");
             }
         }
         return setClause.substring(0, setClause.length() - 2);
     }
+
+    public boolean isRelationField(Field field) {
+        return field.isAnnotationPresent(OneToMany.class)
+                || field.isAnnotationPresent(OneToOne.class)
+                || field.isAnnotationPresent(ManyToOne.class)
+                || field.isAnnotationPresent(ManyToMany.class);
+    }
+
     public String getWherePrimaryKey(){
         String wherePrimaryClause = "";
         for (Field field : getClass().getDeclaredFields()) {
@@ -162,19 +173,33 @@ public class ActiveRecord {
             }
         }
     }
-    public void setPrimaryKeyParameters(PreparedStatement statement) throws SQLException {
+    public void setPrimaryKeyParameters(PreparedStatement statement, int mode) throws SQLException {
         int index = 1;
+        Object id = null;
         for (Field field : getClass().getDeclaredFields()) {
-            if (!field.isSynthetic() && !isPrimaryKey(field)) {
+            if (!field.isSynthetic() && ((mode == 0 || mode == 2) && !isRelationField(field)) || (mode == 1 && isPrimaryKey(field))) {
                 field.setAccessible(true);
                 try {
-                    statement.setObject(index, field.get(this));
+                    if(isPrimaryKey(field) && mode != 2){
+                        System.out.println("Primary key: " + field.get(this));
+                        id = field.get(this);
+                    }
+                    if(mode == 0 || (mode == 2 && !isGeneratedValueField(field))){
+                        System.out.println("Set parameter: " + field.get(this));
+
+                        statement.setObject(index, field.get(this));
+                        index++;
+                    }
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
                 field.setAccessible(false);
-                index++;
             }
+        }
+
+        if(mode == 0 && id != null){
+            System.out.println("Set parameter2: " + id);
+            statement.setObject(index, id);
         }
     }
 
@@ -205,5 +230,96 @@ public class ActiveRecord {
         return sb.toString();
     }
 
+//    update value based on annotation Column name
+    public void updateValue(String columnName, Object value){
+        for (Field field : getClass().getDeclaredFields()) {
+            if (!field.isSynthetic()) {
+                field.setAccessible(true);
+                if(getColumnName(field).equals(columnName)){
+                    try {
+                        field.set(this, value);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+                field.setAccessible(false);
+            }
+        }
+    }
+    public void updateValue(Field field, Object value){
+        for (Field f : getClass().getDeclaredFields()) {
+            if (!f.isSynthetic()) {
+                f.setAccessible(true);
+                if(f.equals(field)){
+                    try {
+                        f.set(this, value);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+                f.setAccessible(false);
+            }
+        }
+    }
+    public void updateValue(String columnName, Object value, Class<?> clazz){
+        for (Field field : clazz.getDeclaredFields()) {
+            if (!field.isSynthetic()) {
+                field.setAccessible(true);
+                if(getColumnName(field).equals(columnName)){
+                    try {
+                        field.set(this, value);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+                field.setAccessible(false);
+            }
+        }
+    }
+    public void updateValue(Field field, Object value, Class<?> clazz){
+        for (Field f : clazz.getDeclaredFields()) {
+            if (!f.isSynthetic()) {
+                f.setAccessible(true);
+                if(f.equals(field)){
+                    try {
+                        f.set(this, value);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+                f.setAccessible(false);
+            }
+        }
+    }
+    public void updateValue(String columnName, Object value, ActiveRecord object){
+        for (Field field : object.getClass().getDeclaredFields()) {
+            if (!field.isSynthetic()) {
+                field.setAccessible(true);
+                if(getColumnName(field).equals(columnName)){
+                    try {
+                        field.set(object, value);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+                field.setAccessible(false);
+            }
+        }
+    }
+    public void updateValue(Field field, Object value, ActiveRecord object) {
+        for (Field f : object.getClass().getDeclaredFields()) {
+            if (!f.isSynthetic()) {
+                f.setAccessible(true);
+                if (f.equals(field)) {
+                    try {
+                        f.set(object, value);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+                f.setAccessible(false);
 
+            }
+        }
+    }
 }
