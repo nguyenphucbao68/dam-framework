@@ -104,6 +104,8 @@ public class CRUDManager {
                 }
             }
 
+            dam.closeConnection(connection);
+
         } catch (SQLException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }

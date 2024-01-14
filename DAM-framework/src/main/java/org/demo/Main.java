@@ -28,17 +28,17 @@ public class Main {
         CRUDManager cm = new CRUDManager(dcm);
 
         // QUERY
-//        List<User> uList = cm.executeSelect(cm.sqlBuidler()
-//                .select()
-//                .from("users")
-//                .limit(2)
-//                .result(),null, 2);
-//
-//        for(User t: uList){
-//            for(Review r: t.getReviews()){
-//                System.out.println(r);
-//            }
-//        }
+        List<User> uList = cm.executeSelect(cm.sqlBuidler()
+                .select()
+                .from("users")
+                .limit(2)
+                .result(),null, 2);
+
+        for(User t: uList){
+            for(Review r: t.getReviews()){
+                System.out.println(r);
+            }
+        }
 
 //        Object[] conditionValues = {0};
 //        String[] groupColumns = {"role"};
@@ -67,6 +67,6 @@ public class Main {
         cm.executeUpdate(b);
 
         // DELETE
-//        cm.executeDelete(b);
+        cm.executeDelete(b);
     }
 }
