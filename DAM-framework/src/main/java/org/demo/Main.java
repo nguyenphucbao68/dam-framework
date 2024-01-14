@@ -53,20 +53,20 @@ public class Main {
 
 
         Blog b = new Blog(
-                UUID.fromString("1210f54f-b50c-4dca-a9d1-a19e7170a99d"),
+                UUID.fromString("25d9ea5f-5996-4c69-a242-b943a1832d2e"),
                 "Test Blog 2",
                 "This is a test blog",
                 "https://www.google.com"
         );
 
-//        cm.executeInsert(b);
+        cm.executeInsert(b);
 
         // UPDATE
-//        b.setTitle("Test Blog 2 Updated");
+        b.setTitle("Test Blog 2 Updated");
 //
-//        cm.executeUpdate(b);
+        cm.executeUpdate(b);
 
         // DELETE
-        cm.executeDelete(b);
+//        cm.executeDelete(b);
     }
 }
