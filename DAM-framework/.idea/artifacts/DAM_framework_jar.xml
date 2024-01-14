@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="DAM-framework:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/DAM_framework_jar</output-path>
+    <root id="archive" name="DAM-framework.jar">
+      <element id="module-output" name="DAM-framework" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/postgresql-42.7.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/checkerframework/checker-qual/3.41.0/checker-qual-3.41.0.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
